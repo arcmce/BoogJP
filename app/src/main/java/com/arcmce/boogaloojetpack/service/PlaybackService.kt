@@ -1,4 +1,4 @@
-package com.arcmce.boogaloojetpack
+package com.arcmce.boogaloojetpack.service
 
 import android.content.Intent
 import androidx.media3.common.MediaItem
