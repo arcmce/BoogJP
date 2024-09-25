@@ -5,11 +5,14 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-appcompat = "1.6.1"
-material = "1.10.0"
+appcompat = "1.7.0"
+material = "1.12.0"
+material3 = "1.3.0"
 retrofit = "2.9.0"
-exoplayer = "1.4.1"
 coil = "2.7.0"
+media3Common = "1.4.1"
+media3Session = "1.4.1"
+media3Exoplayer = "1.4.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -18,19 +21,25 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "exoplayer" }
-session = { group = "androidx.media3", name = "media3-session", version.ref = "exoplayer" }
-media3UI = { group = "androidx.media3", name = "media3-ui", version.ref = "exoplayer" }
-media3Common = { group = "androidx.media3", name = "media3-common", version.ref = "exoplayer" }
+material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3"  }
+#exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "exoplayer" }
+#session = { group = "androidx.media3", name = "media3-session", version.ref = "exoplayer" }
+#media3UI = { group = "androidx.media3", name = "media3-ui", version.ref = "exoplayer" }
+#media3Common = { group = "androidx.media3", name = "media3-common", version.ref = "exoplayer" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 gsonConverter = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 navigationCompose = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.1" }
 runtimeLivedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version = "1.7.2" }
 coilCompose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3Common" }
+androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3Session" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
+#androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 
 
