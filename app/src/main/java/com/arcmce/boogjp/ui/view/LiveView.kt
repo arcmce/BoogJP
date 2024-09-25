@@ -13,28 +13,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.arcmce.boogjp.network.api.RetrofitInstance
-import com.arcmce.boogjp.network.repository.RadioRepository
 import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModel
-import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModelFactory
 
 @Composable
 fun LiveView(
     context: Context,
-    viewModel: RadioInfoViewModel = viewModel(factory = RadioInfoViewModelFactory(
-        RadioRepository(
-            RetrofitInstance.getRadioAPI())
-    )
-    )
+    viewModel: RadioInfoViewModel
 ) {
 
-    // Fetch data when the composable is first shown
-    LaunchedEffect(Unit) {
-        viewModel.fetchRadioInfo()
-    }
+//    // Fetch data when the composable is first shown
+//    LaunchedEffect(Unit) {
+//        viewModel.fetchRadioInfo()
+//    }
 
     // Observe the artwork URL from the ViewModel
     val artworkUrl by viewModel.artworkUrl.observeAsState()
@@ -50,8 +43,8 @@ fun LiveView(
                 AsyncImage(
                     model = url,
                     contentDescription = "Current show artwork",
-                    modifier = Modifier.size(200.dp),
-//                    contentScale = ContentScale.Crop
+//                    modifier = Modifier.size(200.dp),
+                    contentScale = ContentScale.Fit
                 )
             } else {
                 Text(text = "No artwork available")

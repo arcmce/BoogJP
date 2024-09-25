@@ -4,22 +4,60 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.arcmce.boogjp.network.api.RetrofitInstance
+import com.arcmce.boogjp.network.repository.Repository
 import com.arcmce.boogjp.ui.theme.BoogalooJetpackTheme
+import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModel
+import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
+
+//    private lateinit var radioInfoViewModel: RadioInfoViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val repository = Repository()
+        val radioInfoViewModel: RadioInfoViewModel by viewModels { RadioInfoViewModelFactory(repository) }
+
         setContent {
             BoogalooJetpackTheme {
-                AppContent(context = this)
+                AppContent(radioInfoViewModel = radioInfoViewModel, context = this)
+            }
+        }
+
+        startBackgroundCoroutine(radioInfoViewModel)
+    }
+
+    private fun startBackgroundCoroutine(radioInfoViewModel: RadioInfoViewModel) {
+
+        val context = this
+
+        val scope = CoroutineScope(Dispatchers.Default)
+
+        // Start a coroutine that runs every 10 seconds
+        scope.launch {
+            while (true) {
+                // Update data in the ViewModel or any other relevant logic
+                radioInfoViewModel.fetchRadioInfo()
+
+                // Delay for 60 seconds
+                delay(10_000)
             }
         }
     }
@@ -29,6 +67,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppContent(
+    radioInfoViewModel: RadioInfoViewModel,
     context: Context,
 ) {
 
@@ -61,13 +100,17 @@ fun AppContent(
             startDestination = "liveView",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("liveView") { LiveView(context) }
+            composable("liveView") { LiveView(context, radioInfoViewModel) }
             composable("catchUpView") { CatchUpView() }
         }
         PlaybackControls(context)
     }
 }
 
+class MainViewModel : ViewModel() {
+    var currentTabIndex = mutableStateOf(0)
+    val pagerState = rememberPagerState()
+}
 
 
 

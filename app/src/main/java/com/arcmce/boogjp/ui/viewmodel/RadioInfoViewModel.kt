@@ -1,15 +1,14 @@
 package com.arcmce.boogjp.ui.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.*
 import com.arcmce.boogjp.network.model.RadioInfo
-import com.arcmce.boogjp.network.repository.RadioRepository
+import com.arcmce.boogjp.network.repository.Repository
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class RadioInfoViewModel(private val repository: RadioRepository) : ViewModel() {
+class RadioInfoViewModel(private val repository: Repository) : ViewModel() {
 
     private val _artworkUrl = MutableLiveData<String?>()
     val artworkUrl: LiveData<String?> get() = _artworkUrl
@@ -34,7 +33,7 @@ class RadioInfoViewModel(private val repository: RadioRepository) : ViewModel() 
     }
 }
 
-class RadioInfoViewModelFactory(private val repository: RadioRepository) : ViewModelProvider.Factory {
+class RadioInfoViewModelFactory(private val repository: Repository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RadioInfoViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
