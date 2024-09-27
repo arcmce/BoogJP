@@ -22,15 +22,15 @@ import androidx.compose.ui.unit.dp
 import com.arcmce.boogjp.service.PlaybackService
 
 @Composable
-fun PlaybackControls(context: Context) {
+fun PlaybackControls(context: Context, modifier: Modifier = Modifier) {
     // State to track whether the player is playing or not
     var isPlaying by remember { mutableStateOf(false) }
 
     // Top-level layout
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = modifier,
+//            .fillMaxSize()
+//            .padding(16.dp),
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
