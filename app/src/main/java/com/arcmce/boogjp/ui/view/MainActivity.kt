@@ -6,16 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,16 +18,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.arcmce.boogjp.network.api.RetrofitInstance
 import com.arcmce.boogjp.network.repository.Repository
 import com.arcmce.boogjp.ui.theme.BoogalooJetpackTheme
-import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModel
-import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModelFactory
+import com.arcmce.boogjp.ui.viewmodel.CatchUpViewModel
+import com.arcmce.boogjp.ui.viewmodel.CatchUpViewModelFactory
+import com.arcmce.boogjp.ui.viewmodel.LiveViewModel
+import com.arcmce.boogjp.ui.viewmodel.LiveViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -52,18 +48,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val repository = Repository()
-        val radioInfoViewModel: RadioInfoViewModel by viewModels { RadioInfoViewModelFactory(repository) }
+        val radioInfoViewModel: LiveViewModel by viewModels { LiveViewModelFactory(repository) }
+        val catchUpViewModel: CatchUpViewModel by viewModels { CatchUpViewModelFactory(repository) }
 
         setContent {
             BoogalooJetpackTheme {
-                AppContent(radioInfoViewModel = radioInfoViewModel, context = this)
+                AppContent(
+                    radioInfoViewModel = radioInfoViewModel,
+                    catchUpViewModel = catchUpViewModel,
+                    context = this)
             }
         }
 
         startBackgroundCoroutine(radioInfoViewModel)
     }
 
-    private fun startBackgroundCoroutine(radioInfoViewModel: RadioInfoViewModel) {
+    private fun startBackgroundCoroutine(radioInfoViewModel: LiveViewModel) {
 
         val context = this
 
@@ -86,7 +86,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppContent(
-    radioInfoViewModel: RadioInfoViewModel,
+    radioInfoViewModel: LiveViewModel,
+    catchUpViewModel: CatchUpViewModel,
     context: Context,
 ) {
     val liveTab = TabBarItem(title = "Live", selectedIcon = Icons.Filled.Home, unselectedIcon = Icons.Outlined.Home)
@@ -118,7 +119,7 @@ fun AppContent(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     composable(liveTab.title) { LiveView(context, radioInfoViewModel) }
-                    composable(catchUpTab.title) { CatchUpView() }
+                    composable(catchUpTab.title) { CatchUpView(catchUpViewModel) }
                 }
 
                 PlaybackControls(

@@ -4,24 +4,21 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.arcmce.boogjp.ui.viewmodel.RadioInfoViewModel
+import com.arcmce.boogjp.ui.viewmodel.LiveViewModel
 
 @Composable
 fun LiveView(
     context: Context,
-    viewModel: RadioInfoViewModel
+    viewModel: LiveViewModel
 ) {
 
 //    // Fetch data when the composable is first shown

@@ -8,7 +8,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class RadioInfoViewModel(private val repository: Repository) : ViewModel() {
+
+class LiveViewModel(private val repository: Repository) : ViewModel() {
 
     private val _artworkUrl = MutableLiveData<String?>()
     val artworkUrl: LiveData<String?> get() = _artworkUrl
@@ -33,11 +34,11 @@ class RadioInfoViewModel(private val repository: Repository) : ViewModel() {
     }
 }
 
-class RadioInfoViewModelFactory(private val repository: Repository) : ViewModelProvider.Factory {
+class LiveViewModelFactory(private val repository: Repository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(RadioInfoViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(LiveViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return RadioInfoViewModel(repository) as T
+            return LiveViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
