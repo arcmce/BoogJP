@@ -11,6 +11,6 @@ interface MixCloudApi {
     @GET("BoogalooRadio/playlists/?limit=1000")
     fun getPlaylist(): Call<MixCloudPlaylist>
 
-    @GET("BoogalooRadio/playlists/{key}/cloudcasts/")
+    @GET("BoogalooRadio/playlists/{key}/cloudcasts/?limit=1000")
     fun getCloudcast(@Path("key") key: String): Call<MixCloudCloudcast>
 }

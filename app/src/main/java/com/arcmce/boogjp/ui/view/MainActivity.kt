@@ -27,8 +27,10 @@ import com.arcmce.boogjp.network.repository.Repository
 import com.arcmce.boogjp.ui.theme.BoogalooJetpackTheme
 import com.arcmce.boogjp.ui.viewmodel.CatchUpViewModel
 import com.arcmce.boogjp.ui.viewmodel.CatchUpViewModelFactory
+import com.arcmce.boogjp.ui.viewmodel.CloudcastViewModel
 import com.arcmce.boogjp.ui.viewmodel.LiveViewModel
 import com.arcmce.boogjp.ui.viewmodel.LiveViewModelFactory
+import com.arcmce.boogjp.ui.viewmodel.SharedViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -48,14 +50,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val repository = Repository()
+
+        val sharedViewModel: SharedViewModel by viewModels()
         val radioInfoViewModel: LiveViewModel by viewModels { LiveViewModelFactory(repository) }
         val catchUpViewModel: CatchUpViewModel by viewModels { CatchUpViewModelFactory(repository) }
+        val cloudcastViewModel: CloudcastViewModel by viewModels()
 
         setContent {
             BoogalooJetpackTheme {
                 AppContent(
                     radioInfoViewModel = radioInfoViewModel,
                     catchUpViewModel = catchUpViewModel,
+                    sharedViewModel = sharedViewModel,
+                    cloudcastViewModel = cloudcastViewModel,
                     context = this)
             }
         }
@@ -88,8 +95,11 @@ class MainActivity : ComponentActivity() {
 fun AppContent(
     radioInfoViewModel: LiveViewModel,
     catchUpViewModel: CatchUpViewModel,
+    sharedViewModel: SharedViewModel,
+    cloudcastViewModel: CloudcastViewModel,
     context: Context,
 ) {
+
     val liveTab = TabBarItem(title = "Live", selectedIcon = Icons.Filled.Home, unselectedIcon = Icons.Outlined.Home)
     val catchUpTab = TabBarItem(title = "CatchUp", selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
 
@@ -118,12 +128,15 @@ fun AppContent(
                     startDestination = liveTab.title,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    composable(liveTab.title) { LiveView(context, radioInfoViewModel) }
-                    composable(catchUpTab.title) { CatchUpView(catchUpViewModel) }
+                    composable(liveTab.title) { LiveView(radioInfoViewModel, sharedViewModel )}
+                    composable(catchUpTab.title) { CatchUpView(catchUpViewModel, sharedViewModel, navController) }
+
+                    composable("pastShow/{slug}") { CloudcastView(cloudcastViewModel, sharedViewModel, navController) }
                 }
 
                 PlaybackControls(
                     context,
+                    sharedViewModel,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 56.dp)

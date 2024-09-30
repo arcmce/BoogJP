@@ -11,6 +11,9 @@ import retrofit2.Response
 
 class LiveViewModel(private val repository: Repository) : ViewModel() {
 
+    private val _title = MutableLiveData<String?>()
+    val title: LiveData<String?> get() = _title
+
     private val _artworkUrl = MutableLiveData<String?>()
     val artworkUrl: LiveData<String?> get() = _artworkUrl
 
@@ -20,7 +23,9 @@ class LiveViewModel(private val repository: Repository) : ViewModel() {
             call.enqueue(object : Callback<RadioInfo> {
                 override fun onResponse(call: Call<RadioInfo>, response: Response<RadioInfo>) {
                     if (response.isSuccessful) {
+                        _title.value = response.body()?.currentTrack?.title
                         _artworkUrl.value = response.body()?.currentTrack?.artworkUrlLarge
+
                     } else {
                         _artworkUrl.value = null
                     }

@@ -20,76 +20,48 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.arcmce.boogjp.ui.viewmodel.CatchUpCardItem
-import com.arcmce.boogjp.ui.viewmodel.CatchUpViewModel
+import com.arcmce.boogjp.ui.viewmodel.CloudcastCardItem
+import com.arcmce.boogjp.ui.viewmodel.CloudcastViewModel
 import com.arcmce.boogjp.ui.viewmodel.SharedViewModel
 
 @Composable
-fun CatchUpView(
-    viewModel: CatchUpViewModel,
+fun CloudcastView(
+    viewModel: CloudcastViewModel,
     sharedViewModel: SharedViewModel,
     navController: NavController
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.fetchPlaylist()
-    }
 
-//    val cardItems by viewModel.catchupCardDataset.collectAsState(initial = emptyList())
+    viewModel.setCloudcast(sharedViewModel.getCloudcast())
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CatchUpVerticalGrid(
-            viewModel,
-            sharedViewModel,
-            navController
-//            cardItems
+        CloudcastVerticalGrid(
+            viewModel
         )
     }
 }
 
 @Composable
-fun CatchUpVerticalGrid(
-    viewModel: CatchUpViewModel,
-    sharedViewModel: SharedViewModel,
+fun CloudcastVerticalGrid(
+    viewModel: CloudcastViewModel
 //    items: List<CatchUpCardItem>
-    navController: NavController
 ) {
 
-//    val viewModel: CatchUpViewModel = viewModel()
 
     val gridState = rememberLazyGridState()
 
-    val cardItems by viewModel.catchupCardDataset.collectAsState(initial = emptyList())
-
-    // Observe changes to visible items using snapshotFlow
-    LaunchedEffect(gridState) {
-        snapshotFlow { gridState.layoutInfo.visibleItemsInfo }
-            .collect { visibleItems ->
-                Log.d("CatchUpView", "Visible items: $visibleItems")
-
-                visibleItems.forEach { itemInfo ->
-                    val item = cardItems.getOrNull(itemInfo.index)
-                    if (item != null) {
-                        viewModel.fetchCloudcastData(item.slug)
-                        Log.d("CatchUpView", "Fetching thumbnail for index: ${itemInfo.index}")
-                    }
-                }
-            }
-    }
+    val cardItems by viewModel.cloudcastCardDataset.collectAsState(initial = emptyList())
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 128.dp),
@@ -102,37 +74,18 @@ fun CatchUpVerticalGrid(
 
         itemsIndexed(cardItems) { index, item ->
 
-            CardItemView(
-                item,
-                viewModel,
-                sharedViewModel,
-                navController
-            )
+            CloudcastCardItemView(item)
         }
     }
 }
 
 @Composable
-fun CardItemView(
-    item: CatchUpCardItem,
-    viewModel: CatchUpViewModel,
-    sharedViewModel: SharedViewModel,
-    navController: NavController) {
-
-//    val viewModel: CatchUpViewModel = viewModel()
-
+fun CloudcastCardItemView(item: CloudcastCardItem) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        elevation = CardDefaults.cardElevation(4.dp),
-        onClick = {
-            val cloudcast = viewModel.getCloudcast(item.slug)
-            sharedViewModel.setCloudcast(cloudcast)
-            navController.navigate("pastShow/${item.slug}") {
-                // Pass cloudcastData as a parameter or using a shared ViewModel
-            }
-        }
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
             // Load image using Coil

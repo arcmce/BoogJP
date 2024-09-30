@@ -2,13 +2,12 @@ package com.arcmce.boogjp.ui.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.*
-import com.arcmce.boogjp.network.model.CloudcastData
 import com.arcmce.boogjp.network.model.MixCloudCloudcast
 import com.arcmce.boogjp.network.model.MixCloudPlaylist
-import com.arcmce.boogjp.network.model.RadioInfo
 import com.arcmce.boogjp.network.repository.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -18,39 +17,41 @@ import retrofit2.Response
 data class CatchUpCardItem(
     val name: String,
     var thumbnail: String,
-    val key: String,
+    val slug: String,
 //    val url: ArrayList<String>
 )
 
 class CatchUpViewModel(private val repository: Repository) : ViewModel() {
 
-    private val _dataset = MutableLiveData<List<CatchUpCardItem>>()
-    val dataset: LiveData<List<CatchUpCardItem>> get() = _dataset
+    private val _catchupCardDataset = MutableStateFlow<List<CatchUpCardItem>>(emptyList())
+    val catchupCardDataset: StateFlow<List<CatchUpCardItem>> get() = _catchupCardDataset
 
-    private val _cloudcastData = MutableStateFlow<Map<String, MixCloudCloudcast>>(emptyMap())
-    val cloudcastData: StateFlow<Map<String, MixCloudCloudcast>> = _cloudcastData
+    private val _cloudcastData = MutableStateFlow<Map<String, MixCloudCloudcast?>>(emptyMap())
+    val cloudcastData: StateFlow<Map<String, MixCloudCloudcast?>> = _cloudcastData
+
+    private val fetchedKeys = mutableSetOf<String>()
+
+    private val lastRequestTimes = mutableMapOf<String, Long>()
+
+    private val timeoutMillis = 5000L // 5 seconds timeout
 
     fun fetchPlaylist() {
         viewModelScope.launch {
             val call = repository.getPlaylist()
             call.enqueue(object : Callback<MixCloudPlaylist> {
                 override fun onResponse(call: Call<MixCloudPlaylist>, response: Response<MixCloudPlaylist>) {
-                    if (response.isSuccessful) {
-                        val dataset = ArrayList<CatchUpCardItem>()
 
-                        for (playlist in response.body()?.data!!) {
-                            dataset.add(CatchUpCardItem(
+                    if (response.isSuccessful) {
+                        val dataset = response.body()?.data?.map { playlist ->
+                            CatchUpCardItem(
                                 name = playlist.name,
-                                thumbnail = response.body()?.data!![0].owner.pictures.large,
-                                key = playlist.key
-//                                url = cloudcastUrlList
-                            ))
-                        }
-                        _dataset.value = dataset
-//                        _artworkUrl.value = response.body()?.currentTrack?.artworkUrlLarge
-//                    } else {
-//                        _artworkUrl.value = null
-//                    }
+                                thumbnail = _cloudcastData.value[playlist.slug]?.data?.first()?.pictures?.large
+                                    ?: playlist.owner.pictures.large,
+                                slug = playlist.slug
+                            )
+                        } ?: emptyList()
+
+                        _catchupCardDataset.value = dataset
                         Log.d("CatchUpViewModel", "fetchPlaylist success")
                     }
                 }
@@ -64,13 +65,49 @@ class CatchUpViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun fetchCloudcastData(key: String) {
+
+        val currentTime = System.currentTimeMillis()
+
+        // Check if the key is already fetched or the last request was within the timeout period
+        if (fetchedKeys.contains(key)) {
+            Log.d("CatchUpViewModel", "$key request skipped - already fetched")
+            return
+        }
+        // Check if the key is already fetched or the last request was within the timeout period
+        if ((lastRequestTimes[key]?.let { currentTime - it < timeoutMillis } == true)) {
+            Log.d("CatchUpViewModel", "$key request skipped - timeout")
+            return
+        }
+
+        // Update the last request time
+        lastRequestTimes[key] = currentTime
+
         viewModelScope.launch {
             val call = repository.getCloudcast(key)
             call.enqueue(object : Callback<MixCloudCloudcast> {
                 override fun onResponse(call: Call<MixCloudCloudcast>, response: Response<MixCloudCloudcast>) {
                     if (response.isSuccessful) {
+                        val cloudcast = response.body()
+                        _cloudcastData.update { it + (key to cloudcast) }
 
-                        Log.d("CatchUpViewModel", "fetchCloudcastData success")
+                        fetchedKeys.add(key)
+
+                        _catchupCardDataset.update { currentList ->
+                            currentList.map { item ->
+                                if (item.slug == key) {
+                                    item.copy(thumbnail = cloudcast?.data?.first()?.pictures?.large ?: item.thumbnail)
+                                } else item
+                            }
+                        }
+
+//                        val updatedList = _catchupCardDataset.value?.map { item ->
+//                            if (item.slug == key) {
+//                                item.copy(thumbnail = cloudcast?.data?.first()?.pictures?.large ?: item.thumbnail)
+//                            } else item
+//                        } ?: emptyList()
+//                        _catchupCardDataset.value = updatedList
+
+                        Log.d("CatchUpViewModel", "fetchCloudcastData success $key")
                     }
                 }
 
@@ -82,7 +119,7 @@ class CatchUpViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun getCloudcastData(key: String): MixCloudCloudcast? {
+    fun getCloudcast(key: String): MixCloudCloudcast? {
         return _cloudcastData.value[key]
     }
 }

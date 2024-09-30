@@ -14,11 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.arcmce.boogjp.ui.viewmodel.LiveViewModel
+import com.arcmce.boogjp.ui.viewmodel.SharedViewModel
 
 @Composable
 fun LiveView(
-    context: Context,
-    viewModel: LiveViewModel
+    viewModel: LiveViewModel,
+    sharedViewModel: SharedViewModel
 ) {
 
 //    // Fetch data when the composable is first shown
@@ -28,6 +29,9 @@ fun LiveView(
 
     // Observe the artwork URL from the ViewModel
     val artworkUrl by viewModel.artworkUrl.observeAsState()
+    val title by viewModel.title.observeAsState()
+
+    sharedViewModel.setLiveTitle(title)
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -46,6 +50,6 @@ fun LiveView(
             } else {
                 Text(text = "No artwork available")
             }
-        } ?: Text(text = "Loading...", style = MaterialTheme.typography.bodyLarge)
+        } ?: Text(text = title ?: "Boogaloo Radio", style = MaterialTheme.typography.bodyLarge)
     }
 }
