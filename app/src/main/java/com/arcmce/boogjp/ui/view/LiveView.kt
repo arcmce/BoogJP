@@ -39,6 +39,8 @@ fun LiveView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Display image if artworkUrl is available
+        // TODO stretch to screen
+        // TODO play button here?
         artworkUrl?.let { url ->
             if (url.isNotEmpty()) {
                 AsyncImage(

@@ -32,6 +32,8 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
     val title by sharedViewModel.liveTitle.observeAsState()
 
     // TODO play button wrong state on app reload
+    // TODO make into floating (looking) object
+    // TODO actually play pause logo not button
 
     // Top-level layout
     Column(

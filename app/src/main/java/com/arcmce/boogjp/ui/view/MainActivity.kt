@@ -49,6 +49,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // TODO splash screen
+
         val repository = Repository()
 
         val sharedViewModel: SharedViewModel by viewModels()
@@ -134,6 +136,7 @@ fun AppContent(
                     composable("pastShow/{slug}") { CloudcastView(cloudcastViewModel, sharedViewModel, navController) }
                 }
 
+                // TODO become visible when service state is playing
                 PlaybackControls(
                     context,
                     sharedViewModel,

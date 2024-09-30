@@ -82,6 +82,7 @@ fun CloudcastVerticalGrid(
 @Composable
 fun CloudcastCardItemView(item: CloudcastCardItem) {
     Card(
+        // TODO on click, load to mixcloud.
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),

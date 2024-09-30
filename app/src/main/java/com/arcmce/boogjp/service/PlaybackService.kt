@@ -17,6 +17,8 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         Log.d("PlaybackService", "PlaybackService created")
 
+        // TODO track playback state for reload and for notification
+
         // Initialize the ExoPlayer
         player = ExoPlayer.Builder(this).build()
 
