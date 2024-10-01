@@ -1,5 +1,6 @@
 package com.arcmce.boogjp.ui.view
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -21,11 +22,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import com.arcmce.boogjp.service.PlaybackService
 import com.arcmce.boogjp.ui.viewmodel.SharedViewModel
+import com.google.common.util.concurrent.MoreExecutors
 
 @Composable
 fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifier: Modifier = Modifier) {
+
+    lateinit var player: Player
+
     // State to track whether the player is playing or not
     var isPlaying by remember { mutableStateOf(false) }
 
@@ -34,6 +45,20 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
     // TODO play button wrong state on app reload
     // TODO make into floating (looking) object
     // TODO actually play pause logo not button
+
+    Log.d("PlaybackControls", "pre sessiontoken")
+    val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+    Log.d("PlaybackControls", "pre controllerFuture build")
+    val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+    controllerFuture.addListener(
+        {
+
+            Log.d("PlaybackControls", "pre controllerfuture get")
+            player = controllerFuture.get()
+//            player.pause()
+        },
+        MoreExecutors.directExecutor()
+    )
 
     // Top-level layout
     Column(
@@ -51,16 +76,55 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
         // Play/Pause button
         Button(onClick = {
             if (isPlaying) {
-                stopPlaybackService(context)
+//                stopPlaybackService(context)
+                player.pause()
                 Log.d("PlaybackControls", "Stopping playback")
             } else {
-                startPlaybackService(context)
+//                startPlaybackService(context)
+                player.play()
                 Log.d("PlaybackControls", "Starting playback")
             }
             isPlaying = !isPlaying // Toggle playback state
         }) {
             Text(if (isPlaying) "Pause" else "Play")
         }
+
+        Button(onClick = {
+            val mediaItem = MediaItem.Builder()
+                .setUri("https://streams.radio.co/sb88c742f0/listen")
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(title)
+                        .setArtist(title)
+//                            .setArtworkUri()
+                        .build()
+                )
+                .build()
+
+            // Update the player with the new media item
+            player.replaceMediaItem(0, mediaItem)
+        }) {
+            Text("update")
+        }
+
+        Button(onClick = {
+            player.seekToDefaultPosition()
+            player.play()
+//            player.seekBack()
+        }) {
+            Text("play from live")
+        }
+
+        Button(onClick = {
+            Log.d("PlaybackControls", "${player.isCommandAvailable(11)}")
+//            player.seekBack()
+        }) {
+            Text("11 available?")
+        }
+
+
+
+
     }
 }
 
