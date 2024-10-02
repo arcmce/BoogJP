@@ -1,20 +1,22 @@
 package com.arcmce.boogjp.service
 
+import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.core.app.NotificationCompat
+//import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -23,6 +25,10 @@ import com.arcmce.boogjp.ui.view.MainActivity
 import com.arcmce.boogjp.ui.viewmodel.LiveViewModel
 
 class PlaybackService : MediaSessionService() {
+
+    private lateinit var audioManager: AudioManager
+    private lateinit var audioFocusRequest: AudioFocusRequest
+
     private var mediaSession: MediaSession? = null
     private lateinit var player: ExoPlayer
     private lateinit var liveViewModel: LiveViewModel
@@ -31,7 +37,9 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         Log.d("PlaybackService", "PlaybackService created")
 
-        // TODO track playback state for reload and for notification
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+        requestAudioFocus()
 
         // Create notification channel if targeting Android O and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -43,15 +51,6 @@ class PlaybackService : MediaSessionService() {
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
-
-//        liveViewModel.mediaMetadata.observeForever { metadata ->
-//            val mediaItem = MediaItem.Builder()
-//                .setMediaMetadata(metadata)
-//                .build()
-//
-//            player.setMediaItem(mediaItem)
-//            player.prepare()
-//        }
 
         // Initialize the ExoPlayer
         player = ExoPlayer.Builder(this).build()
@@ -95,22 +94,8 @@ class PlaybackService : MediaSessionService() {
         startForeground(1, notification)
     }
 
-    fun updateMetadataInPlayer(title: String, artist: String, artworkUri: Uri?) {
-        val mediaItem = MediaItem.Builder()
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(title)
-                    .setArtist(artist)
-                    .setArtworkUri(artworkUri)
-                    .build()
-            )
-            .build()
 
-        // Update the player with the new media item
-        player.setMediaItem(mediaItem)
-        player.prepare()  // Prepare and start playback if needed
-    }
-
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun playerNotification(): Notification {
         return NotificationCompat.Builder(this, "media_playback_channel")
             .setContentTitle("Playing live stream")
@@ -123,17 +108,8 @@ class PlaybackService : MediaSessionService() {
             .build()
     }
 
-    private fun updateMediaMetadata(artist: String, artworkUri: Uri?) {
-        val mediaItem = MediaItem.Builder()
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setArtist(artist)
-                    .setArtworkUri(artworkUri)
-                    .build()
-            )
-            .build()
-
-        player.setMediaItem(mediaItem)
+    private fun playexternal() {
+        player.play()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -154,6 +130,56 @@ class PlaybackService : MediaSessionService() {
         }
         super.onDestroy()
     }
+
+    fun onAudioFocusChange(focusStatus: Int) {
+        Log.d("PlaybackService", "onAudioFocusChange")
+
+        when (focusStatus) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                Log.d("PlaybackService", "AUDIOFOCUS_GAIN")
+                // Restore volume or start playback
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                Log.d("PlaybackService", "AUDIOFOCUS_LOSS")
+                player.pause()
+                // Optionally stop playback after a delay
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                Log.d("PlaybackService", "AUDIOFOCUS_LOSS_TRANSIENT")
+                player.pause()
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                Log.d("PlaybackService", "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK")
+                // Reduce volume if playing
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private fun requestAudioFocus(): Boolean {
+        Log.d("PlaybackService", "requestAudioFocus")
+
+        audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            .setOnAudioFocusChangeListener { focusChange ->
+                onAudioFocusChange(focusChange)
+            }
+            .build()
+
+        return audioManager.requestAudioFocus(audioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private fun removeAudioFocus(): Boolean {
+        Log.d("PlaybackService", "removeAudioFocus")
+        return audioManager.abandonAudioFocusRequest(audioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         Log.d("PlaybackService", "onGetSession called")

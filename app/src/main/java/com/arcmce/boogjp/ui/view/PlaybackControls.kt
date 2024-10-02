@@ -30,7 +30,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.arcmce.boogjp.service.PlaybackService
 import com.arcmce.boogjp.ui.viewmodel.SharedViewModel
+import com.arcmce.boogjp.util.AppConstants
 import com.google.common.util.concurrent.MoreExecutors
+import java.lang.Thread.sleep
 
 @Composable
 fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifier: Modifier = Modifier) {
@@ -42,7 +44,6 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
 
     val title by sharedViewModel.liveTitle.observeAsState()
 
-    // TODO play button wrong state on app reload
     // TODO make into floating (looking) object
     // TODO actually play pause logo not button
 
@@ -52,13 +53,27 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
     val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
     controllerFuture.addListener(
         {
-
             Log.d("PlaybackControls", "pre controllerfuture get")
             player = controllerFuture.get()
-//            player.pause()
+
+//            player
+            player.addListener(
+                object : Player.Listener {
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        Log.d("PlaybackControls", "update playback state callback")
+                        updatePlaybackState(isPlaying)
+                    }
+
+                    private fun updatePlaybackState(playing: Boolean) {
+                        isPlaying = playing
+                    }
+                }
+            )
         },
         MoreExecutors.directExecutor()
     )
+
+
 
     // Top-level layout
     Column(
@@ -81,6 +96,7 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
                 Log.d("PlaybackControls", "Stopping playback")
             } else {
 //                startPlaybackService(context)
+                player.seekToDefaultPosition()
                 player.play()
                 Log.d("PlaybackControls", "Starting playback")
             }
@@ -89,38 +105,40 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
             Text(if (isPlaying) "Pause" else "Play")
         }
 
-        Button(onClick = {
-            val mediaItem = MediaItem.Builder()
-                .setUri("https://streams.radio.co/sb88c742f0/listen")
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(title)
-                        .setArtist(title)
-//                            .setArtworkUri()
-                        .build()
-                )
-                .build()
-
-            // Update the player with the new media item
-            player.replaceMediaItem(0, mediaItem)
-        }) {
-            Text("update")
-        }
-
-        Button(onClick = {
-            player.seekToDefaultPosition()
-            player.play()
-//            player.seekBack()
-        }) {
-            Text("play from live")
-        }
-
-        Button(onClick = {
-            Log.d("PlaybackControls", "${player.isCommandAvailable(11)}")
-//            player.seekBack()
-        }) {
-            Text("11 available?")
-        }
+//        Button(onClick = {
+//            val mediaItem = MediaItem.Builder()
+//                .setUri(AppConstants.RADIO_STREAM_URL)
+//                .setMediaMetadata(
+//                    MediaMetadata.Builder()
+//                        .setTitle("")
+//                        .setArtist(title)
+////                            .setArtworkUri()
+//                        .build()
+//                )
+//                .build()
+//
+//            // Update the player with the new media item
+//            player.replaceMediaItem(0, mediaItem)
+//        }) {
+//            Text("update")
+//        }
+//
+//        Button(onClick = {
+//            player.seekToDefaultPosition()
+//            player.play()
+////            player.seekBack()
+//        }) {
+//            Text("play from live")
+//        }
+//
+//        Button(onClick = {
+//            Log.d("PlaybackControls", "${player.totalBufferedDuration}")
+//            player.seekForward()
+//            Log.d("PlaybackControls", "${player.totalBufferedDuration}")
+////            player.seekBack()
+//        }) {
+//            Text("misc")
+//        }
 
 
 

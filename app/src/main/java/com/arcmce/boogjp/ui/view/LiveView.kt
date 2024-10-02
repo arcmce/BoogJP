@@ -22,11 +22,6 @@ fun LiveView(
     sharedViewModel: SharedViewModel
 ) {
 
-//    // Fetch data when the composable is first shown
-//    LaunchedEffect(Unit) {
-//        viewModel.fetchRadioInfo()
-//    }
-
     // Observe the artwork URL from the ViewModel
     val artworkUrl by viewModel.artworkUrl.observeAsState()
     val title by viewModel.title.observeAsState()
@@ -52,6 +47,8 @@ fun LiveView(
             } else {
                 Text(text = "No artwork available")
             }
-        } ?: Text(text = title ?: "Boogaloo Radio", style = MaterialTheme.typography.bodyLarge)
+        } ?:
+        // TODO replace this text with placeholder image
+        Text(text = title ?: "Boogaloo Radio", style = MaterialTheme.typography.bodyLarge)
     }
 }

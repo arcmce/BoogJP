@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -54,14 +53,15 @@ class MainActivity : ComponentActivity() {
         val repository = Repository()
 
         val sharedViewModel: SharedViewModel by viewModels()
-        val radioInfoViewModel: LiveViewModel by viewModels { LiveViewModelFactory(repository) }
+        val liveViewModel: LiveViewModel by viewModels { LiveViewModelFactory(repository, application) }
+        liveViewModel.setupPlayer()
         val catchUpViewModel: CatchUpViewModel by viewModels { CatchUpViewModelFactory(repository) }
         val cloudcastViewModel: CloudcastViewModel by viewModels()
 
         setContent {
             BoogalooJetpackTheme {
                 AppContent(
-                    radioInfoViewModel = radioInfoViewModel,
+                    liveViewModel = liveViewModel,
                     catchUpViewModel = catchUpViewModel,
                     sharedViewModel = sharedViewModel,
                     cloudcastViewModel = cloudcastViewModel,
@@ -69,10 +69,10 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        startBackgroundCoroutine(radioInfoViewModel)
+        startBackgroundCoroutine(liveViewModel)
     }
 
-    private fun startBackgroundCoroutine(radioInfoViewModel: LiveViewModel) {
+    private fun startBackgroundCoroutine(liveViewModel: LiveViewModel) {
 
         val context = this
 
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
         scope.launch {
             while (true) {
                 // Update data in the ViewModel or any other relevant logic
-                radioInfoViewModel.fetchRadioInfo()
+                liveViewModel.fetchRadioInfo()
 
                 // Delay for 60 seconds
                 delay(10_000)
@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppContent(
-    radioInfoViewModel: LiveViewModel,
+    liveViewModel: LiveViewModel,
     catchUpViewModel: CatchUpViewModel,
     sharedViewModel: SharedViewModel,
     cloudcastViewModel: CloudcastViewModel,
@@ -130,7 +130,7 @@ fun AppContent(
                     startDestination = liveTab.title,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    composable(liveTab.title) { LiveView(radioInfoViewModel, sharedViewModel )}
+                    composable(liveTab.title) { LiveView(liveViewModel, sharedViewModel )}
                     composable(catchUpTab.title) { CatchUpView(catchUpViewModel, sharedViewModel, navController) }
 
                     composable("pastShow/{slug}") { CloudcastView(cloudcastViewModel, sharedViewModel, navController) }
