@@ -3,7 +3,6 @@ package com.arcmce.boogjp.ui.viewmodel
 import android.app.Application
 import android.content.ComponentName
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.*
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -12,7 +11,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.arcmce.boogjp.network.model.RadioInfo
 import com.arcmce.boogjp.network.repository.Repository
-import com.arcmce.boogjp.service.PlaybackService
+import com.arcmce.boogjp.playback.PlaybackService
 import com.arcmce.boogjp.util.AppConstants
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.launch

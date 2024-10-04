@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -17,11 +18,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.arcmce.boogjp.R
 import com.arcmce.boogjp.network.repository.Repository
 import com.arcmce.boogjp.ui.theme.BoogalooJetpackTheme
 import com.arcmce.boogjp.ui.viewmodel.CatchUpViewModel
@@ -115,6 +119,19 @@ fun AppContent(
         color = MaterialTheme.colorScheme.background
     ) {
         Scaffold(
+            topBar = {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_long_black) ,
+                    contentDescription = "Boogaloo logo long black",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(Alignment.Start)
+                        .padding(16.dp)
+                        .height(32.dp)
+                        , // Size can be adjusted as needed
+                    contentScale = ContentScale.Fit // Ensure proper scaling of the image
+                )
+            },
             bottomBar = {
                 TabView(tabBarItems, navController)
             }
@@ -142,7 +159,7 @@ fun AppContent(
                     sharedViewModel,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 56.dp)
+//                        .padding(bottom = 32.dp)
                 )
             }
         }

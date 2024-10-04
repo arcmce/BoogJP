@@ -1,5 +1,8 @@
 package com.arcmce.boogjp.ui.view
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -81,12 +85,22 @@ fun CloudcastVerticalGrid(
 
 @Composable
 fun CloudcastCardItemView(item: CloudcastCardItem) {
+    val context = LocalContext.current
+
     Card(
         // TODO on click, load to mixcloud.
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = {
+            Log.d("CloudcastView", "onItemClicked " + item.name)
+            Log.d("CloudcastView", "onItemClicked " + item.url)
+
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse(item.url)
+            context.startActivity(intent)
+        }
     ) {
         Column {
             // Load image using Coil
@@ -105,3 +119,13 @@ fun CloudcastCardItemView(item: CloudcastCardItem) {
         }
     }
 }
+
+//fun Context.launchUriIntent(uri: String) {
+//    val parsedUri = Uri.parse(uri)
+//    val intent = Intent(Intent.ACTION_VIEW, parsedUri)
+//
+//    // Use a package manager to check if there is an app to handle the intent
+//    if (intent.resolveActivity(packageManager) != null) {
+//        startActivity(intent)
+//    }
+//}
