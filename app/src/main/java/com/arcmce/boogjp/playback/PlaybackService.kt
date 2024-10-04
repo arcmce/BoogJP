@@ -7,61 +7,87 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.AudioFocusRequest
-import android.media.AudioManager
+//import android.media.AudioManager
 import android.os.Build
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
+//import android.support.v4.media.session.MediaSessionCompat
+//import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
-//import androidx.media3.common.AudioAttributes
-import androidx.media.session.MediaButtonReceiver
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-//import androidx.media3.session.MediaButtonReceiver
+import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import androidx.media.MediaBrowserServiceCompat
+//import androidx.media3.session.MediaSessionConnector
+////import androidx.media3.common.AudioAttributes
+//import androidx.media.session.MediaButtonReceiver
+//import androidx.media3.common.MediaItem
+//import androidx.media3.common.MediaMetadata
+//import androidx.media3.exoplayer.ExoPlayer
+////import androidx.media3.session.MediaButtonReceiver
+//import androidx.media3.session.MediaSession
+//import androidx.media3.session.MediaSessionService
+//import androidx.media.MediaBrowserServiceCompat
 import com.arcmce.boogjp.R
 import com.arcmce.boogjp.ui.view.MainActivity
 import com.arcmce.boogjp.ui.viewmodel.LiveViewModel
 
 class PlaybackService : MediaSessionService() {
 
-    private lateinit var audioManager: AudioManager
-    private lateinit var audioFocusRequest: AudioFocusRequest
-
-    private var mediaSessionCompat: MediaSessionCompat? = null
-    private lateinit var stateBuilder: PlaybackStateCompat.Builder
-
-    private var mediaSession: MediaSession? = null
     private lateinit var player: ExoPlayer
-    private lateinit var liveViewModel: LiveViewModel
+    private var mediaSession: MediaSession? = null
+//    private lateinit var mediaS
 
-    private lateinit var audioFocusManager: AudioFocusManager
+//    private lateinit var audioManager: AudioManager
+//    private lateinit var audioFocusManager: AudioFocusManager
+
+//    private lateinit var audioFocusRequest: AudioFocusRequest
+
+//    private var mediaSessionCompat: MediaSessionCompat? = null
+//    private lateinit var stateBuilder: PlaybackStateCompat.Builder
+
+//    private lateinit var liveViewModel: LiveViewModel
+
 
     override fun onCreate() {
         super.onCreate()
         Log.d("PlaybackService", "PlaybackService created")
 
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+//        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        audioFocusManager = AudioFocusManager(this)
+//        audioFocusManager = AudioFocusManager(this)
 //        audioFocusManager.requestAudioFocus()
 
-        // Create notification channel if targeting Android O and above
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "media_playback_channel",  // Channel ID
-                "Media Playback",          // Channel name
-                NotificationManager.IMPORTANCE_LOW  // Low importance so it's not intrusive
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
-
         // Initialize the ExoPlayer
-        player = ExoPlayer.Builder(this).build()
+        player = ExoPlayer.Builder(this)
+            .setAudioAttributes(AudioAttributes.DEFAULT, /* handleAudioFocus= */ true)
+            .build()
+        player.addAnalyticsListener(EventLogger())
+
+        // Create a PendingIntent for launching the app when the notification is tapped
+        val sessionActivityPendingIntent: PendingIntent = PendingIntent.getActivity(
+            this, 0, Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Create the MediaSession and link it to the player
+        mediaSession = MediaSession.Builder(this, player)
+            .setSessionActivity(sessionActivityPendingIntent)
+            .build()
+
+//        // Create notificatcion channel if targeting Android O and above
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val channel = NotificationChannel(
+//                "media_playback_channel",  // Channel ID
+//                "Media Playback",          // Channel name
+//                NotificationManager.IMPORTANCE_LOW  // Low importance so it's not intrusive
+//            )
+//            val manager = getSystemService(NotificationManager::class.java)
+//            manager.createNotificationChannel(channel)
+//        }
 
         // Create a MediaItem with metadata
         val mediaItem = MediaItem.Builder()
@@ -85,99 +111,94 @@ class PlaybackService : MediaSessionService() {
 
 //        Log.d("PlaybackService", "Player is set to play when ready: ${player.playWhenReady}")
 
-        // Create a PendingIntent for launching the app when the notification is tapped
-        val sessionActivityPendingIntent: PendingIntent = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Create the MediaSession and link it to the player
-        mediaSession = MediaSession.Builder(this, player)
-            .setSessionActivity(sessionActivityPendingIntent)
-            .build()
 
         Log.d("PlaybackService", "MediaSession created")
 
-        val notification = playerNotification()
-        startForeground(1, notification)
+//        val notification = playerNotification()
+//        startForeground(1, notification)
     }
 
-    private val mediaSessionCallbacks = object: MediaSessionCompat.Callback() {
-        override fun onPlay() {
-            if (audioFocusManager.requestAudioFocus()) {
-                player.play()
-            }
-        }
+//    private val mediaSessionCallbacks = object: MediaSessionCompat.Callback() {
+//        override fun onPlay() {
+//            if (audioFocusManager.requestAudioFocus()) {
+//                player.play()
+//            }
+//        }
+//
+//        override fun onStop() {
+//            stopSelf()
+//            player.stop()
+//        }
+//
+//        override fun onPause() {
+//            player.pause()
+//        }
+//    }
 
-        override fun onStop() {
-            stopSelf()
-            player.stop()
-        }
-
-        override fun onPause() {
-            player.pause()
-        }
-    }
-
-    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-    private fun playerNotification(): Notification {
-        val playPauseAction = if (player.isPlaying) {
-            NotificationCompat.Action(
-                R.drawable.ic_media_pause, "Pause",
-                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
-            )
-        } else {
-            NotificationCompat.Action(
-                R.drawable.ic_media_play, "Play",
-                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
-            )
-        }
-
-
-        val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
-        val pendingItent = PendingIntent.getBroadcast(
-            baseContext,
-            0, mediaButtonIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        mediaSessionCompat = MediaSessionCompat(this, "MediaService", null, pendingItent).apply {
-
-            stateBuilder = PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE)
-            setPlaybackState(stateBuilder.build())
-
-            setCallback(mediaSessionCallbacks)
-
-        }
-
-
-        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
-            .setMediaSession(sessionToken)
-            .setShowActionsInCompactView(0)
-
-//        val playPauseIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
-//            this, PlaybackStateCompat.ACTION_PLAY_PAUSE
-//        )
-
-        return NotificationCompat.Builder(this, "media_playback_channel")
-            .setContentTitle("Playing live stream")
-            .setContentText("Boogaloo Radio")
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setStyle(mediaStyle)
-            .addAction(playPauseAction)
-//            .setStyle(
-//                androidx.media.app.NotificationCompat.MediaStyle()
-//                    .setMediaSession(mediaSession?.sessionCompatToken)
+//    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+//    private fun playerNotification(): Notification {
+//        val playPauseAction = if (player.isPlaying) {
+//            NotificationCompat.Action(
+//                R.drawable.ic_media_pause, "Pause",
+//                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
 //            )
-            .build()
-    }
+//        } else {
+//            NotificationCompat.Action(
+//                R.drawable.ic_media_play, "Play",
+//                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
+//            )
+//        }
+//
+//
+////        val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
+////        val pendingIntent = PendingIntent.getBroadcast(
+////            baseContext,
+////            0, mediaButtonIntent,
+////            PendingIntent.FLAG_IMMUTABLE
+////        )
+//
+//        val mediaSessionCompat = MediaSessionCompat(this, "TAG")
+//        mediaSessionCompat.setSessionToken(mediaSession?.sessionCompatToken) // Use this for compatibility
+//
+//
+////        mediaSessionCompat = MediaSessionCompat(this, "MediaService", null, pendingIntent).apply {
+////
+////            stateBuilder = PlaybackStateCompat.Builder()
+////                .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE)
+////            setPlaybackState(stateBuilder.build())
+////
+////            setCallback(mediaSessionCallbacks)
+////
+////        }
+//
+//
+////        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
+////            .setMediaSession(sessionToken)
+////            .setShowActionsInCompactView(0)
+//
+////        val playPauseIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
+////            this, PlaybackStateCompat.ACTION_PLAY_PAUSE
+////        )
+//
+//        return NotificationCompat.Builder(this, "media_playback_channel")
+//            .setContentTitle("Playing live stream")
+//            .setContentText("Boogaloo Radio")
+//            .setSmallIcon(R.mipmap.ic_launcher)
+////            .setStyle(mediaStyle)
+//            .addAction(playPauseAction)
+////            .setStyle(
+////                androidx.media.app.NotificationCompat.MediaStyle()
+////                    .setMediaSession(mediaSession?.sessionCompatToken)
+////            )
+//            .build()
+//    }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        val player = mediaSession?.player!!
-        if (player.playWhenReady) {
-            // Make sure the service is not in foreground.
-            player.pause()
+        mediaSession?.player?.let { player ->
+            if (player.playWhenReady) {
+                // Pause the player if it's playing
+                player.pause()
+            }
         }
         stopSelf()
     }
@@ -189,7 +210,7 @@ class PlaybackService : MediaSessionService() {
             release()
             mediaSession = null
         }
-        audioFocusManager.abandonAudioFocus()
+//        audioFocusManager.abandonAudioFocus()
         super.onDestroy()
     }
 

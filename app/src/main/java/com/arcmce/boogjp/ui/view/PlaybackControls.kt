@@ -1,6 +1,6 @@
 package com.arcmce.boogjp.ui.view
 
-import com.arcmce.boogjp.playback.AudioFocusManager
+//import com.arcmce.boogjp.playback.AudioFocusManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -43,7 +43,7 @@ import com.google.common.util.concurrent.MoreExecutors
 @Composable
 fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifier: Modifier = Modifier) {
 
-    val audioFocusManager = remember { AudioFocusManager(context) }
+//    val audioFocusManager = remember { AudioFocusManager(context) }
 
     var player: Player? = null
 
@@ -148,16 +148,16 @@ fun PlaybackControls(context: Context, sharedViewModel: SharedViewModel, modifie
             onPlayPauseToggle = {
                 if (isPlaying) {
                     player?.pause()
-                    audioFocusManager.abandonAudioFocus()
+//                    audioFocusManager.abandonAudioFocus()
                     Log.d("PlaybackControls", "Stopping playback")
                     isPlaying = !isPlaying // Toggle playback state
                 } else {
-                    if (audioFocusManager.requestAudioFocus()) {
+//                    if (audioFocusManager.requestAudioFocus()) {
                         player?.seekToDefaultPosition()
                         player?.play()
                         Log.d("PlaybackControls", "Starting playback")
                         isPlaying = !isPlaying // Toggle playback state
-                    }
+//                    }
                 }
             }
         )
