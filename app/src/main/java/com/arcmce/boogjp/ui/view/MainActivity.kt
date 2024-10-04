@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.arcmce.boogjp.R
 import com.arcmce.boogjp.network.repository.Repository
@@ -175,6 +176,20 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController) {
         mutableStateOf(0)
     }
 
+    // Observe the current back stack entry
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    // Update selectedTabIndex based on the current destination
+    LaunchedEffect(navBackStackEntry) {
+        val currentDestination = navBackStackEntry?.destination?.route
+        tabBarItems.forEachIndexed { index, tabBarItem ->
+            if (tabBarItem.title == currentDestination) {
+                selectedTabIndex = index
+            }
+        }
+    }
+
+
     NavigationBar {
         // looping over each tab to generate the views and navigation for each item
         tabBarItems.forEachIndexed { index, tabBarItem ->
@@ -182,7 +197,13 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController) {
                 selected = selectedTabIndex == index,
                 onClick = {
                     selectedTabIndex = index
-                    navController.navigate(tabBarItem.title)
+                    navController.navigate(tabBarItem.title) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 icon = {
                     TabBarIconView(
@@ -200,7 +221,6 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController) {
 
 // This component helps to clean up the API call from our TabView above,
 // but could just as easily be added inside the TabView without creating this custom component
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabBarIconView(
     isSelected: Boolean,
@@ -220,7 +240,6 @@ fun TabBarIconView(
 // This component helps to clean up the API call from our TabBarIconView above,
 // but could just as easily be added inside the TabBarIconView without creating this custom component
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun TabBarBadgeView(count: Int? = null) {
     if (count != null) {
         Badge {

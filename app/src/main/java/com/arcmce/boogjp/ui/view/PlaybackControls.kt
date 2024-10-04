@@ -1,6 +1,5 @@
 package com.arcmce.boogjp.ui.view
 
-//import com.arcmce.boogjp.playback.AudioFocusManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent

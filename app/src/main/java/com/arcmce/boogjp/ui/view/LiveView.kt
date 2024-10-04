@@ -1,11 +1,9 @@
 package com.arcmce.boogjp.ui.view
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -94,7 +92,5 @@ fun LiveView(
             // TODO replace this text with placeholder image
             Text(text = title ?: "Boogaloo Radio", style = MaterialTheme.typography.bodyLarge)
         }
-
-//        Spacer(modifier = Modifier.weight(2f))
     }
 }
